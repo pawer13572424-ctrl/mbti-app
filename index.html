@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MBTI 性格診断</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --card: #16213e;
+      --accent: #7c3aed;
+      --accent2: #a78bfa;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: #2d2d4e;
+      --radius: 14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* --- START PAGE --- */
+    #page-start { text-align: center; }
+    #page-start h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent2), #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    #page-start p {
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+    .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 36px;
+    }
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      color: var(--accent2);
+    }
+
+    /* --- QUIZ PAGE --- */
+    #page-quiz { display: none; }
+    .progress-wrap {
+      margin-bottom: 28px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: var(--surface);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .dimension-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent2);
+      background: rgba(124,58,237,0.15);
+      border-radius: 999px;
+      padding: 3px 12px;
+      margin-bottom: 16px;
+    }
+    .question-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .option-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.98rem;
+      padding: 16px 20px;
+      text-align: left;
+      transition: border-color 0.2s, background 0.2s, transform 0.1s;
+    }
+    .option-btn:hover {
+      border-color: var(--accent2);
+      background: rgba(124,58,237,0.1);
+      transform: translateX(4px);
+    }
+    .option-btn.selected {
+      border-color: var(--accent);
+      background: rgba(124,58,237,0.2);
+    }
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* --- RESULT PAGE --- */
+    #page-result { display: none; text-align: center; }
+    .type-display {
+      margin-bottom: 28px;
+    }
+    .type-code {
+      font-size: 4rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--accent2), #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .type-name {
+      font-size: 1.3rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .result-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .result-card h3 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent2);
+      margin-bottom: 14px;
+    }
+    .result-card p {
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 0.97rem;
+    }
+    .traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .trait {
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 999px;
+      padding: 5px 14px;
+      font-size: 0.85rem;
+      color: var(--accent2);
+    }
+    .dim-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .dim-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .dim-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+    .dim-labels .left { color: var(--accent2); }
+    .dim-labels .right { color: var(--muted); }
+    .dim-bar-bg {
+      height: 8px;
+      background: var(--surface);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .dim-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #60a5fa);
+      border-radius: 999px;
+      transition: width 1s ease;
+    }
+    .famous {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .famous-person {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+    .check-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .check-list li::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .list-good li::before { background: #34d399; }
+    .list-bad li::before { background: #f87171; }
+    .list-suited li::before { background: #60a5fa; }
+    .list-unsuited li::before { background: #fb923c; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .two-col .result-card { margin-bottom: 0; }
+    .col-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+    .col-label.good { color: #34d399; }
+    .col-label.bad { color: #f87171; }
+    .col-label.suited { color: #60a5fa; }
+    .col-label.unsuited { color: #fb923c; }
+    .stress-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .stress-tag {
+      background: rgba(251,146,60,0.1);
+      border: 1px solid rgba(251,146,60,0.3);
+      border-radius: 999px;
+      padding: 4px 13px;
+      font-size: 0.82rem;
+      color: #fb923c;
+    }
+    .rel-box {
+      background: rgba(96,165,250,0.07);
+      border: 1px solid rgba(96,165,250,0.2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    @media (max-width: 520px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* --- BUTTONS --- */
+    .btn {
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-secondary {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 13px 24px;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      color: var(--accent2);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 13px 28px;
+      transition: background 0.2s;
+    }
+    .btn-outline:hover { background: rgba(124,58,237,0.1); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- START PAGE -->
+  <div id="page-start">
+    <h1>MBTI 性格診断</h1>
+    <p>20の質問に答えるだけで、あなたの性格タイプを診断します。<br>直感的に感じる方を選んでください。</p>
+    <div class="badge-row">
+      <span class="badge">20問</span>
+      <span class="badge">約3分</span>
+      <span class="badge">16タイプ</span>
+    </div>
+    <button class="btn" onclick="startQuiz()">診断をはじめる</button>
+  </div>
+
+  <!-- QUIZ PAGE -->
+  <div id="page-quiz">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="q-label">質問 1 / 20</span>
+        <span id="q-percent">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="question-card">
+      <div class="dimension-tag" id="dim-tag"></div>
+      <div class="question-text" id="question-text"></div>
+    </div>
+    <div class="options" id="options-container"></div>
+    <div class="nav-row">
+      <button class="btn-secondary" id="btn-prev" onclick="prevQuestion()">戻る</button>
+      <button class="btn" id="btn-next" onclick="nextQuestion()" disabled>次へ</button>
+    </div>
+  </div>
+
+  <!-- RESULT PAGE -->
+  <div id="page-result">
+    <div class="type-display">
+      <div class="type-code" id="res-code"></div>
+      <div class="type-name" id="res-name"></div>
+    </div>
+    <div class="result-card">
+      <h3>説明</h3>
+      <p id="res-desc"></p>
+    </div>
+    <div class="result-card">
+      <h3>主な特徴</h3>
+      <div class="traits" id="res-traits"></div>
+    </div>
+    <div class="result-card">
+      <h3>スコア内訳</h3>
+      <div class="dim-bars" id="res-bars"></div>
+    </div>
+    <div class="two-col">
+      <div class="result-card">
+        <div class="col-label good">長所</div>
+        <ul class="check-list list-good" id="res-strengths"></ul>
+      </div>
+      <div class="result-card">
+        <div class="col-label bad">短所</div>
+        <ul class="check-list list-bad" id="res-weaknesses"></ul>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:20px;">
+      <div class="result-card">
+        <div class="col-label suited">向いている仕事</div>
+        <ul class="check-list list-suited" id="res-suited"></ul>
+      </div>
+      <div class="result-card">
+        <div class="col-label unsuited">向いていない仕事</div>
+        <ul class="check-list list-unsuited" id="res-unsuited"></ul>
+      </div>
+    </div>
+    <div class="result-card" style="margin-top:20px;">
+      <h3>ストレスになりやすいこと</h3>
+      <div class="stress-tags" id="res-stress"></div>
+    </div>
+    <div class="result-card">
+      <h3>人間関係のヒント</h3>
+      <div class="rel-box" id="res-relationship"></div>
+    </div>
+    <div class="result-card">
+      <h3>同じタイプの有名人</h3>
+      <div class="famous" id="res-famous"></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap;">
+      <button class="btn-outline" onclick="restartQuiz()">もう一度診断する</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  // E/I
+  { dim: 'E/I', label: '外向性 / 内向性', text: '週末、あなたはどちらを好みますか？', a: '友人や知人と過ごし、にぎやかな場所に行く', b: '自宅でゆっくりと自分の時間を過ごす', scoreA: 'E' },
+  { dim: 'E/I', label: '外向性 / 内向性', text: '初対面の人との会話で、あなたはどう感じますか？', a: 'すぐに打ち解けて話が弾む', b: '少し緊張し、じっくり相手を観察する', scoreA: 'E' },
+  { dim: 'E/I', label: '外向性 / 内向性', text: '疲れたとき、エネルギーを回復するには？', a: '人と会って話すと元気になる', b: '一人の時間でこそリフレッシュできる', scoreA: 'E' },
+  { dim: 'E/I', label: '外向性 / 内向性', text: '会議やグループ討論で、あなたは？', a: '積極的に発言し、意見を出す方だ', b: '聞いてから考え、まとまったら発言する', scoreA: 'E' },
+  { dim: 'E/I', label: '外向性 / 内向性', text: '思考のスタイルは？', a: '話しながら考えを整理することが多い', b: '一人で内側で考えをまとめてから話す', scoreA: 'E' },
+  // S/N
+  { dim: 'S/N', label: '感覚 / 直感', text: '新しいことを学ぶとき、あなたは？', a: '具体的な例や手順から入るのが好き', b: '全体のコンセプトや可能性から理解したい', scoreA: 'S' },
+  { dim: 'S/N', label: '感覚 / 直感', text: '旅行の計画を立てるとき、あなたは？', a: '具体的なスケジュールをしっかり決める', b: '大まかな方向だけ決めて、あとは流れで', scoreA: 'S' },
+  { dim: 'S/N', label: '感覚 / 直感', text: '問題に取り組む際、どちらに近いですか？', a: '実績のある方法・過去のやり方を参考にする', b: '新しいアプローチや独自の解決策を試みる', scoreA: 'S' },
+  { dim: 'S/N', label: '感覚 / 直感', text: '日常の細かいことへの注意は？', a: '細部に気づき、実際の事実を重視する', b: '全体像や将来の可能性に目が向く', scoreA: 'S' },
+  { dim: 'S/N', label: '感覚 / 直感', text: '会話の中で、あなたはどちらを楽しみますか？', a: '実際に起きたことや具体的な話', b: 'アイデアや仮説・未来の話', scoreA: 'S' },
+  // T/F
+  { dim: 'T/F', label: '思考 / 感情', text: '友人が悩みを相談してきたとき、あなたは？', a: '問題の原因を分析し、解決策を提案する', b: 'まず共感し、気持ちに寄り添う', scoreA: 'T' },
+  { dim: 'T/F', label: '思考 / 感情', text: '意思決定のとき、重視するのは？', a: '論理的な分析と客観的な基準', b: '人への影響や自分・他者の価値観', scoreA: 'T' },
+  { dim: 'T/F', label: '思考 / 感情', text: '批判や指摘を受けたとき、あなたは？', a: '内容が正しければ感情を切り離して受け入れられる', b: '内容より言い方や関係性も気になる', scoreA: 'T' },
+  { dim: 'T/F', label: '思考 / 感情', text: 'グループの雰囲気が悪いとき、あなたは？', a: '問題の本質を見て、効率的に解決しようとする', b: 'まず人々の気持ちを和らげようとする', scoreA: 'T' },
+  { dim: 'T/F', label: '思考 / 感情', text: '称賛されるとしたら、どちらが嬉しいですか？', a: '「あなたの分析・判断は的確だ」と言われること', b: '「あなたは人の気持ちをよくわかっている」と言われること', scoreA: 'T' },
+  // J/P
+  { dim: 'J/P', label: '判断 / 知覚', text: '締め切りのある仕事は？', a: '余裕を持って前倒しで終わらせる', b: '締め切り直前に集中してこなす', scoreA: 'J' },
+  { dim: 'J/P', label: '判断 / 知覚', text: '日々の生活で、あなたは？', a: 'ルーティンや計画があると安心する', b: '状況に応じて柔軟に動く方が好き', scoreA: 'J' },
+  { dim: 'J/P', label: '判断 / 知覚', text: 'プロジェクトに取り組むとき？', a: 'まず計画をしっかり立てて進める', b: 'やりながら方向性を調整していく', scoreA: 'J' },
+  { dim: 'J/P', label: '判断 / 知覚', text: '机やデジタルファイルの整理は？', a: 'きちんと整理されていないと落ち着かない', b: '自分だけが分かる独自の整理法がある', scoreA: 'J' },
+  { dim: 'J/P', label: '判断 / 知覚', text: '予定外のことが起きたとき、あなたは？', a: '計画が崩れるとストレスを感じる', b: '変化やハプニングも楽しめる', scoreA: 'J' },
+];
+
+const TYPES = {
+  INTJ: {
+    name: '建築家',
+    desc: '想像力豊かで戦略的な思考の持ち主。あらゆる物事に対して計画を持ち、目標達成への意志が強い。独立性が高く、知識の探求を好む。',
+    traits: ['戦略的', '独立的', '決断力がある', '知識欲旺盛', '完璧主義'],
+    strengths: ['長期的な視野で戦略を描く力がある', '独立して高い集中力で作業できる', '論理的に問題を分析し本質を見抜く', '目標達成への強い意志と自己規律', '革新的なアイデアを体系化できる'],
+    weaknesses: ['感情表現が乏しく冷たく見られやすい', '完璧主義でストレスを溜め込みやすい', '他者の意見を軽視する傾向がある', '社交的な場が苦手で孤立しやすい', '柔軟性に欠け変化への適応が遅い'],
+    suited: ['戦略コンサルタント', 'システムアーキテクト', '研究者・科学者', '弁護士・裁判官', '医師・外科医'],
+    unsuited: ['接客・サービス業', '感情重視のカウンセリング', '単純なルーティン作業', '細かい指示に従うだけの仕事'],
+    stress: ['非効率なプロセス', '感情的な議論', '計画の突然の変更', '能力の低い環境', '表面的な社交'],
+    relationship: '深い知的つながりを何より重視します。表面的な会話や無意味な社交は苦手ですが、信頼できる少数の人とは強い絆を築けます。パートナーには自立心と知性を求めます。批判ではなく論理的な対話で関係を深めましょう。',
+    famous: ['イーロン・マスク', 'マーク・ザッカーバーグ', 'ニーチェ'],
+  },
+  INTP: {
+    name: '論理学者',
+    desc: '革新的な発明家タイプ。知識への飽くなき渇望を持ち、論理と分析を好む。独創的なアイデアを生み出すが、実行より思考に比重が傾く。',
+    traits: ['論理的', '創造的', '分析的', '柔軟な思考', '独立的'],
+    strengths: ['複雑な問題を論理的に分解する能力', '先入観なく客観的に思考できる', '独創的なアイデアと理論を生み出す', '幅広い分野の知識を吸収する好奇心', 'パターンや矛盾をすぐに見つける'],
+    weaknesses: ['考えすぎて行動に移せないことがある', '感情的な場面での対応が苦手', 'ルーティンや反復作業に飽きやすい', '優柔不断で締め切りを守りにくい', '人付き合いに消極的になりやすい'],
+    suited: ['プログラマー・エンジニア', '数学者・研究者', '哲学者・作家', 'データアナリスト', '経済学者'],
+    unsuited: ['営業・セールス', '感情重視の対人支援', 'ルーティン事務作業', 'マネージャー職'],
+    stress: ['非論理的な要求', '感情的な対立', '過度な社交義務', '興味のない反復作業', '時間的プレッシャー'],
+    relationship: '深い知的対話を楽しめる相手を求めます。感情表現は少なめですが、思いやりは確かに存在します。相手が感情面を理解してくれれば長く安定した関係を築けます。プライベートな時間を尊重してもらうことが重要です。',
+    famous: ['アルベルト・アインシュタイン', 'ビル・ゲイツ', 'ソクラテス'],
+  },
+  ENTJ: {
+    name: '指揮官',
+    desc: '生まれながらのリーダー。カリスマ性と自信にあふれ、意志の力で障害を乗り越える。非効率なものを改善する強い意欲を持つ。',
+    traits: ['リーダーシップ', '自信家', '決断力', '戦略的', '目標志向'],
+    strengths: ['明確なビジョンを持ちチームを牽引する', '素早く的確な意思決定ができる', '非効率を見つけて改善する行動力', '長期戦略の立案と実行力が高い', '困難な状況でも冷静に対処できる'],
+    weaknesses: ['支配的・傲慢に見られやすい', '他者の感情やペースを軽視しがち', '弱みを見せることを嫌う', '短期的な人の感情より結果を優先', '批判が直接的すぎて傷つけることも'],
+    suited: ['CEO・経営者', '弁護士・検察官', 'プロジェクトマネージャー', '政治家・外交官', '軍・警察の管理職'],
+    unsuited: ['単純作業・マニュアル作業', '命令に従うだけの役職', '感情的サポート中心の仕事', '成果の見えにくい仕事'],
+    stress: ['非効率な組織', '無能なリーダーの下での業務', '曖昧な目標や権限', '感情的・非論理的な議論', '怠慢な同僚'],
+    relationship: 'パートナーに対しても高い基準を持ちます。対等な知的パートナーを求め、互いに成長できる関係を理想とします。感情表現が少ない面があるので、意識的に相手への配慮を言葉で示すことが関係改善につながります。',
+    famous: ['スティーブ・ジョブズ', 'マーガレット・サッチャー', '織田信長'],
+  },
+  ENTP: {
+    name: '討論者',
+    desc: 'スマートで好奇心旺盛な思索家。知的な挑戦を楽しみ、どんな権威にも反論できる。多様なアイデアを組み合わせる能力が高い。',
+    traits: ['革新的', '議論好き', '機転が利く', '知的好奇心', '大局的'],
+    strengths: ['素早い思考と卓越した議論の技術', '既成概念にとらわれない発想力', '多様な分野の知識を結びつける能力', '変化や不確実性への高い適応力', '問題の本質を素早く見抜く洞察力'],
+    weaknesses: ['議論のための議論になりやすい', '始めたことを途中で放棄しやすい', '細かいルールや手続きを嫌う', '集中力が散漫になりやすい', '他者の感情への配慮が不足しがち'],
+    suited: ['起業家・イノベーター', '弁護士・ディベーター', 'コンサルタント', 'マーケター', '脚本家・クリエイター'],
+    unsuited: ['厳格なルーティン作業', '細かい事務・経理', '一つの技術を深掘りする専門職', '感情的サポート中心の仕事'],
+    stress: ['単調なルーティン', '硬直した官僚的組織', '知的刺激のない環境', '細かい管理・マイクロマネジメント', '締め切りの厳しいルーティン業務'],
+    relationship: '知的に対等で刺激し合える関係を求めます。議論を楽しみますが、相手が傷ついていることに気づきにくい面も。相手の感情に耳を傾け、議論と会話の違いを意識することが良好な関係の鍵です。',
+    famous: ['レオナルド・ダ・ヴィンチ', 'トーマス・エジソン', '孫正義'],
+  },
+  INFJ: {
+    name: '提唱者',
+    desc: '静かで神秘的だが人々を鼓舞する。深い洞察力と強い信念を持ち、人類の幸福のために行動する。稀少で深い共感力の持ち主。',
+    traits: ['洞察力', '共感力', '信念が強い', '創造的', '思慮深い'],
+    strengths: ['他者の感情や動機を深く読み取る洞察力', '強い理想と使命感で周囲を鼓舞する', '創造的で独自の表現力を持つ', '深い共感で人々の心に寄り添える', '長期的なビジョンで物事を見渡す'],
+    weaknesses: ['完璧主義でバーンアウトしやすい', '他者の痛みを過剰に吸収してしまう', '批判や意見の衝突を極端に避ける', '自分の限界を超えても断れない', 'プライベートを守りすぎて孤立しやすい'],
+    suited: ['カウンセラー・心理士', '作家・詩人', '教師・教育者', 'NGO・社会活動家', '医療従事者'],
+    unsuited: ['競争が激しい営業・ビジネス職', '感情を無視した合理的な環境', '大人数での浅い対人業務', '単純なルーティン作業'],
+    stress: ['価値観に反する仕事', '感情的な対立や衝突', '批判や否定的なフィードバック', '孤立感や理解されない感覚', '過度な人付き合い'],
+    relationship: '少数の深い関係を大切にします。相手の本音を読み取る力があり、深い絆を築けますが、自己犠牲になりやすいのが課題。自分自身の気持ちや限界も大切にしながら、相手に伝えることが健全な関係につながります。',
+    famous: ['ネルソン・マンデラ', '宮崎駿', 'マーティン・ルーサー・キング'],
+  },
+  INFP: {
+    name: '仲介者',
+    desc: '詩人的で誠実な心を持ち、常により良い世界を探し求める。共感力が高く、深い価値観を大切にする。内面の豊かな想像の世界を持つ。',
+    traits: ['理想主義', '共感力', '創造的', '誠実', '感受性豊か'],
+    strengths: ['豊かな感受性と創造的な表現力', '他者への深い共感と受容力', '自分の価値観に対する強い誠実さ', '独自の視点と詩的な思考', '人の可能性を信じる温かい心'],
+    weaknesses: ['批判に対して過剰に傷つきやすい', '理想と現実のギャップに苦しむ', '決断力が低く優柔不断になりやすい', '現実逃避や空想にふけりやすい', '自己批判が強く自信を失いやすい'],
+    suited: ['作家・詩人・脚本家', 'カウンセラー・心理士', '芸術家・デザイナー', '音楽家・俳優', '教育者・保育士'],
+    unsuited: ['競争的・数字重視の環境', '感情を切り離した合理的な判断', '細かい管理業務・経理', '権威主義的な組織'],
+    stress: ['価値観に反することを強いられる', '批判・否定的な評価', '対立や衝突の多い環境', '自分のペースを乱される', '意義を感じられない仕事'],
+    relationship: '深く誠実な愛情を注ぎます。相手のありのままを受け入れ、精神的なつながりを重視します。批判や衝突を避けすぎて本音を伝えられないことがあります。勇気を出して自分の気持ちを言葉にすることが、より豊かな関係につながります。',
+    famous: ['J.R.R.トールキン', '宮沢賢治', 'ヴィンセント・ヴァン・ゴッホ'],
+  },
+  ENFJ: {
+    name: '主人公',
+    desc: 'カリスマ的で感化力のあるリーダー。人々の可能性を信じ、その成長を促すことに喜びを感じる。人脈を大切にし、グループをまとめる力がある。',
+    traits: ['カリスマ的', '共感力', 'リーダーシップ', '誠実', '協調的'],
+    strengths: ['人の可能性を引き出す天性のリーダーシップ', '深い共感力で人の気持ちを敏感に察知', '多様な人々をつなぎチームを鼓舞する力', '情熱的に理想を語り周囲を巻き込む', '誠実さと思いやりで信頼を集める'],
+    weaknesses: ['他人の問題を自分のことのように背負いすぎる', '批判や対立を過剰に恐れる', '自分自身のニーズを後回しにしやすい', '他者への期待が高くなりすぎる', '感情的になりすぎて判断が歪む'],
+    suited: ['教師・コーチ・メンター', 'カウンセラー・HR担当', '政治家・社会活動家', '医師・看護師', 'イベントプランナー'],
+    unsuited: ['孤立した一人作業', '感情を無視した競争環境', '冷淡な数字・データのみの仕事', '人との接触がない仕事'],
+    stress: ['自分の努力が認められないとき', '周囲の人間関係の対立', '自分の価値観に反する指示', '他者の期待に応えられないとき', '孤立や疎外感'],
+    relationship: '相手の気持ちに深く寄り添い、献身的に関係を育てます。愛情表現が豊かで相手を大切にしますが、自己犠牲になりやすいのが課題。自分自身の感情やニーズも同様に大切にしながら、バランスのとれた関係を目指しましょう。',
+    famous: ['バラク・オバマ', 'オプラ・ウィンフリー', '坂本龍馬'],
+  },
+  ENFP: {
+    name: '運動家',
+    desc: '情熱的で創造的な自由な魂。人生を可能性の宝庫と見なし、常にポジティブ。人との繋がりを大切にし、新しいアイデアに目を輝かせる。',
+    traits: ['情熱的', '創造的', '社交的', '楽観的', '自由奔放'],
+    strengths: ['人を惹きつける魅力的なコミュニケーション力', '独創的な発想で新しい可能性を切り開く', '人々の気持ちへの敏感な共感力', '変化や新しいことへの高い適応力', '情熱的に人を巻き込んでいく行動力'],
+    weaknesses: ['一つのことへの集中力が続きにくい', '締め切りや細かい作業が苦手', '感情的になりすぎて判断が揺れる', '計画より衝動を優先しやすい', '承認欲求が強くなりやすい'],
+    suited: ['ジャーナリスト・ライター', 'マーケター・PR担当', 'カウンセラー・コーチ', '俳優・クリエイター', '起業家・イノベーター'],
+    unsuited: ['単調なルーティン作業', '細かいデータ管理・経理', '創造性を求められない仕事', '孤立した長期プロジェクト'],
+    stress: ['制限の多い環境や細かい管理', '長期的な単調な作業', '批判や否定的な評価', '孤独感や孤立', '意義を感じられない業務'],
+    relationship: '情熱的で温かく、相手を心から大切にします。関係に深い意味とつながりを求めますが、飽きやすい一面も。長期的な関係では相手との日常の安心感を育てることが大切です。感情的な会話を大切にしながら、互いの成長を支え合える関係を目指しましょう。',
+    famous: ['ロビン・ウィリアムズ', '村上春樹', 'ウォルト・ディズニー'],
+  },
+  ISTJ: {
+    name: '管理者',
+    desc: '実直で事実を重んじる信頼できる人。責任感が強く、伝統や秩序を大切にする。やると決めたことは必ずやり遂げる。',
+    traits: ['責任感', '勤勉', '誠実', '実務的', '秩序を重視'],
+    strengths: ['約束を必ず守る高い信頼性と誠実さ', '細部まで正確に処理する几帳面さ', '計画を立てて着実に実行する継続力', '論理的・事実に基づいた判断力', '安定した環境を作り維持する能力'],
+    weaknesses: ['変化や新しいやり方への抵抗感', '感情表現が苦手で融通が利かない', '柔軟性に欠け例外を認めにくい', '他者の感情的なニーズを軽視しやすい', '革新的・創造的な発想が苦手'],
+    suited: ['会計士・税理士', '公務員・行政官', 'エンジニア・技術者', '医師・薬剤師', '法律家・裁判官'],
+    unsuited: ['創造性重視のクリエイティブ職', '頻繁に状況が変わる職場', '感情的サポートが中心の仕事', '明確なルールのない環境'],
+    stress: ['突発的な計画変更', '不確かな情報や曖昧な指示', '無責任な同僚', '感情的な対立', '非効率・非論理的な組織'],
+    relationship: '誠実で安定した関係を築きます。言葉より行動で愛情を示すタイプです。感情表現が少ないため、パートナーから「気持ちが伝わらない」と感じられることも。意識的に言葉で気持ちを伝え、相手の感情的なニーズにも目を向けることが大切です。',
+    famous: ['ウォーレン・バフェット', '徳川家康', 'アンゲラ・メルケル'],
+  },
+  ISFJ: {
+    name: '擁護者',
+    desc: '非常に献身的で温かい擁護者。大切な人を守るためなら何でもする心の優しさを持つ。実践的で事実を重んじ、人助けを喜びとする。',
+    traits: ['献身的', '温かい', '責任感', '観察力', '実践的'],
+    strengths: ['他者への細やかな配慮と観察力', '信頼性が高く責任をもって仕事をする', '温かく包容力のある人間関係を築く', '困っている人を放っておけない思いやり', '実務的で着実に仕事をこなす忍耐力'],
+    weaknesses: ['自己主張が苦手で断れない', '批判や対立を避けすぎる', '変化への適応が遅く新しいことに不安', '感謝されないと落ち込みやすい', '自分のニーズを後回しにしすぎる'],
+    suited: ['看護師・医療従事者', '保育士・教師', '社会福祉士・ケアワーカー', '事務職・秘書', 'カウンセラー'],
+    unsuited: ['競争的・対立的な環境', 'リーダーシップや意思決定が多い役職', '感情を切り離した冷淡な業務', '高いリスクを取る仕事'],
+    stress: ['批判や否定的な評価', '対立や衝突の多い状況', '感謝されない献身', '突然の大きな変化', '過剰な責任や仕事量'],
+    relationship: '相手を細かいところまで気遣い、献身的に支えます。相手のことを最優先にしますが、自分の気持ちを伝えることが苦手です。我慢が積み重なる前に、正直な気持ちを穏やかに伝える練習が、より豊かな関係につながります。',
+    famous: ['ケイト・ミドルトン', 'マザー・テレサ', '伊能忠敬'],
+  },
+  ESTJ: {
+    name: '幹部',
+    desc: '伝統と秩序の管理者。物事を整理し、人々をまとめる優れた能力を持つ。正直で忠実で、コミュニティのリーダー的存在になることが多い。',
+    traits: ['組織力', 'リーダーシップ', '誠実', '実務的', '決断力'],
+    strengths: ['明確なルールと秩序を作り維持する能力', '実務的で責任感が強くやり遂げる力', '直接的で明快なコミュニケーション', 'チームをまとめる組織力と決断力', '伝統や実績に基づいた安定した判断'],
+    weaknesses: ['感情より規則を優先しすぎる', '頑固で変化を受け入れにくい', '批判が直接的で相手を傷つけやすい', '創造的・革新的な発想が苦手', '権威を盾にして柔軟性を失いやすい'],
+    suited: ['マネージャー・管理職', '弁護士・検察官', '軍人・警察官', '会計士・財務担当', '判事・行政官'],
+    unsuited: ['創造性やアート中心の仕事', 'ルールのない自由な環境', '感情重視のカウンセリング', '抽象的な思考が中心の仕事'],
+    stress: ['規律を守らない人や組織', '曖昧な目標や責任の所在', '非効率・無秩序な環境', '自分の権限が無視される状況', '急激な変化や方針転換'],
+    relationship: '安定した誠実な関係を求めます。責任感が強く、パートナーを守ろうとする姿勢が際立ちます。一方で感情的な側面を軽視しやすいため、相手の感情的なニーズに耳を傾けることが、より深い関係の構築につながります。',
+    famous: ['ジョン・D・ロックフェラー', '山本五十六', 'ヒラリー・クリントン'],
+  },
+  ESFJ: {
+    name: '領事',
+    desc: '非常に思いやりがあり社交的。常に人の役に立ちたいと考え、周囲の調和を大切にする。責任感が強く、グループの潤滑剤的存在。',
+    traits: ['思いやり', '社交的', '責任感', '協調性', '実践的'],
+    strengths: ['場の空気を読み周囲を和やかにする力', '人の気持ちに敏感で細やかな配慮ができる', '責任感が強く献身的に仕事に取り組む', '広い人脈を作り維持するコミュニケーション力', '実践的に人の役に立てる行動力'],
+    weaknesses: ['批判に過剰に敏感で傷つきやすい', '承認欲求が強く他者の評価に左右される', '変化や新しいやり方への抵抗感', '自分の意見より周囲の意見を優先しすぎる', '対立を避けすぎて本音が言えない'],
+    suited: ['教師・保育士', '看護師・医療従事者', 'HR・人事担当', 'イベントプランナー', '営業・接客'],
+    unsuited: ['競争的・冷淡なビジネス環境', '孤立した作業や在宅勤務', '抽象的・理論的な仕事', '批判が多い環境'],
+    stress: ['批判や否定的な評価', '人間関係の対立や不和', '感謝されない状況', '孤立・疎外感', '急な変化や予定外の出来事'],
+    relationship: '温かく献身的で、相手を喜ばせることに喜びを感じます。調和を大切にするため、対立を避けすぎて本音を言えないことも。自分の気持ちや意見を大切にし、時には相手に正直に伝える勇気が、より対等で健全な関係につながります。',
+    famous: ['ヒュー・ジャックマン', 'テイラー・スウィフト', '昭和天皇'],
+  },
+  ISTP: {
+    name: '巨匠',
+    desc: '大胆かつ実践的な実験者。あらゆるツールを使いこなし、問題を解決することに喜びを感じる。冷静で合理的、状況への適応力が高い。',
+    traits: ['実践的', '分析的', '合理的', '冷静', '独立的'],
+    strengths: ['道具や技術を直感的に使いこなす能力', '冷静に状況を分析し即座に対応する力', '論理的かつ実践的な問題解決能力', '危機的状況でも落ち着いて行動できる', '独立して効率よく仕事をこなせる'],
+    weaknesses: ['感情表現が極端に少なく冷たく見られる', '長期的な計画や将来設計が苦手', 'コミットメントや責任を避けたがる', '飽きやすく興味が次々に移る', '感情的なサポートを求める人への対応が苦手'],
+    suited: ['エンジニア・メカニック', 'パイロット・乗り物操縦士', '外科医・救急医療', 'プログラマー', 'フォレンジックアナリスト'],
+    unsuited: ['感情重視のカウンセリング', '長期的な感情的関係が必要な仕事', 'ルーティン事務作業', '細かい規則に縛られた職場'],
+    stress: ['長い会議や無意味な議論', '過剰な感情的要求', '明確でないルールや期待', '自由のない管理された環境', '理論だけで実践のない仕事'],
+    relationship: '独立心が強く、感情表現よりも行動で愛情を示します。相手のプライベートを尊重し干渉しません。一方で感情的なつながりを求めるパートナーとは摩擦が生じることも。意識的に気持ちを言葉で伝える努力が、関係を深めるカギです。',
+    famous: ['クリント・イーストウッド', 'ブルース・リー', 'マイケル・ジョーダン'],
+  },
+  ISFP: {
+    name: '冒険家',
+    desc: '柔軟性があり魅力的な芸術家。自分だけの道を探索し、現在の瞬間を大切にする。人々の驚きと興奮を喜びとし、自己表現を大切にする。',
+    traits: ['芸術的', '感受性豊か', '温かい', '柔軟', '自由奔放'],
+    strengths: ['豊かな感性と独自の芸術的表現力', '今この瞬間を大切にする生き方', '人や動物への温かい共感と思いやり', '固定観念にとらわれない柔軟な発想', '行動で感情を表現できる繊細さ'],
+    weaknesses: ['自己主張が苦手で意見を言えない', '批判や否定的なフィードバックに弱い', '長期的な計画や将来設計が苦手', 'ストレスを内に溜め込みやすい', '飽きやすく長続きしないことがある'],
+    suited: ['アーティスト・デザイナー', '音楽家・ダンサー', '看護師・介護士', 'シェフ・料理人', 'フォトグラファー'],
+    unsuited: ['厳格なルールと管理の職場', '競争的・攻撃的な環境', '抽象的な理論中心の仕事', '感情を切り離した判断が求められる仕事'],
+    stress: ['批判や否定的な評価', '自分の価値観への強制', '対立や衝突の多い環境', '創造性を発揮できない状況', '長期的な義務や拘束'],
+    relationship: '言葉より行動や感覚で愛情を伝えます。相手の感情に敏感で、穏やかな関係を好みます。自己主張が苦手なため、不満を溜め込まないように注意が必要です。感じていることを少しずつ言葉にする練習が、より深い相互理解につながります。',
+    famous: ['フレディ・マーキュリー', '美空ひばり', 'マイケル・ジャクソン'],
+  },
+  ESTP: {
+    name: '起業家',
+    desc: 'スマートで活発、鋭い知覚の持ち主。リスクを恐れず行動で示す。周囲の人々に強い影響を与え、生き生きとした存在感を放つ。',
+    traits: ['行動力', '社交的', '観察力', 'リスクを取る', '実践的'],
+    strengths: ['素早い状況判断と即断即決の行動力', '鋭い観察眼で人や状況を的確に読む', '危機的状況でも冷静に対処できる', '人を魅了するエネルギーと社交性', '実践から学ぶ高い適応力'],
+    weaknesses: ['長期的な思考や計画が苦手', '衝動的に行動して後から後悔することも', 'ルールや規則を軽視しがち', '感情的なつながりを軽視する傾向', '退屈するとリスキーな行動に走る'],
+    suited: ['起業家・経営者', 'セールス・営業職', 'スポーツ選手・コーチ', '救急救命士・消防士', '俳優・エンターテイナー'],
+    unsuited: ['抽象的・理論的な研究', '単調なルーティン作業', '感情重視のサポート職', '長期の計画と管理が必要な仕事'],
+    stress: ['単調でルーティンな環境', '長い計画立案や会議', '細かい規則による制限', '感情的・抽象的な議論', '行動できない待機状態'],
+    relationship: 'エネルギッシュで魅力的、相手を楽しませることが得意です。関係においては興奮や刺激を求めます。長期的な関係では、感情的なつながりや相手の深いニーズに目を向けることが大切です。',
+    famous: ['マドンナ', 'アーネスト・ヘミングウェイ', '長嶋茂雄'],
+  },
+  ESFP: {
+    name: 'エンターテイナー',
+    desc: '自発的でエネルギッシュで熱狂的。人生は楽しむためにあると信じ、周囲の人々を喜ばせることを好む。好奇心旺盛でどんな場所でも場を盛り上げる。',
+    traits: ['明るい', '自発的', '社交的', '楽観的', '人を楽しませる'],
+    strengths: ['どんな場所でも場を盛り上げる明るさ', '今この瞬間を全力で楽しむ生き方', '人の気持ちに敏感な共感力', '実践的に人を助けるフットワークの軽さ', '自然と人を惹きつけるカリスマ性'],
+    weaknesses: ['長期的な計画や将来設計が苦手', '批判や否定的な評価に弱い', '集中力が続かず飽きやすい', '衝動的な決断をしやすい', '深刻な状況を避けようとする'],
+    suited: ['俳優・タレント', 'ミュージシャン・ダンサー', 'イベントプランナー', '営業・接客業', '観光ガイド・旅行業'],
+    unsuited: ['一人での長期作業', 'データ分析・研究職', '抽象的・理論的な仕事', '感情を制限される環境'],
+    stress: ['長期的な単調な義務', '批判や否定的なフィードバック', '孤独・孤立した状況', '厳格なルールと制限', '深刻で重い議論'],
+    relationship: '明るく自発的で、一緒にいると楽しい存在です。愛情表現が豊かで相手を喜ばせることが好きです。関係に深みを持たせるには、楽しいことだけでなく真剣な話し合いも大切に。相手の感情的なニーズに長期的に向き合う姿勢が信頼関係を育てます。',
+    famous: ['エルトン・ジョン', '志村けん', 'ビヨンセ'],
+  },
+};
+
+let currentQ = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startQuiz() {
+  document.getElementById('page-start').style.display = 'none';
+  document.getElementById('page-quiz').style.display = 'block';
+  showQuestion(0);
+}
+
+function showQuestion(idx) {
+  const q = QUESTIONS[idx];
+  currentQ = idx;
+  const total = QUESTIONS.length;
+  const pct = Math.round((idx / total) * 100);
+
+  document.getElementById('q-label').textContent = `質問 ${idx + 1} / ${total}`;
+  document.getElementById('q-percent').textContent = `${pct}%`;
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+  document.getElementById('dim-tag').textContent = q.label;
+  document.getElementById('question-text').textContent = q.text;
+
+  const container = document.getElementById('options-container');
+  container.innerHTML = '';
+  ['a', 'b'].forEach(choice => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn' + (answers[idx] === choice ? ' selected' : '');
+    btn.textContent = q[choice];
+    btn.onclick = () => selectOption(choice);
+    container.appendChild(btn);
+  });
+
+  document.getElementById('btn-prev').style.visibility = idx === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').disabled = answers[idx] === null;
+  document.getElementById('btn-next').textContent = idx === total - 1 ? '結果を見る' : '次へ';
+}
+
+function selectOption(choice) {
+  answers[currentQ] = choice;
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === (choice === 'a' ? 0 : 1));
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (currentQ < QUESTIONS.length - 1) {
+    showQuestion(currentQ + 1);
+  } else {
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) showQuestion(currentQ - 1);
+}
+
+function calcType() {
+  const scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+  QUESTIONS.forEach((q, i) => {
+    const ans = answers[i];
+    if (!ans) return;
+    const winner = ans === 'a' ? q.scoreA : (q.scoreA === 'E' ? 'I' : q.scoreA === 'S' ? 'N' : q.scoreA === 'T' ? 'F' : 'P');
+    scores[winner]++;
+  });
+  return {
+    type: (scores.E >= scores.I ? 'E' : 'I') + (scores.S >= scores.N ? 'S' : 'N') + (scores.T >= scores.F ? 'T' : 'F') + (scores.J >= scores.P ? 'J' : 'P'),
+    scores
+  };
+}
+
+function showResult() {
+  document.getElementById('page-quiz').style.display = 'none';
+  document.getElementById('page-result').style.display = 'block';
+
+  const { type, scores } = calcType();
+  const info = TYPES[type];
+
+  document.getElementById('res-code').textContent = type;
+  document.getElementById('res-name').textContent = info.name;
+  document.getElementById('res-desc').textContent = info.desc;
+
+  const traitsEl = document.getElementById('res-traits');
+  traitsEl.innerHTML = info.traits.map(t => `<span class="trait">${t}</span>`).join('');
+
+  document.getElementById('res-strengths').innerHTML = info.strengths.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('res-weaknesses').innerHTML = info.weaknesses.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('res-suited').innerHTML = info.suited.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('res-unsuited').innerHTML = info.unsuited.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('res-stress').innerHTML = info.stress.map(s => `<span class="stress-tag">${s}</span>`).join('');
+  document.getElementById('res-relationship').textContent = info.relationship;
+
+  const famousEl = document.getElementById('res-famous');
+  famousEl.innerHTML = info.famous.map(f => `<span class="famous-person">${f}</span>`).join('');
+
+  const dims = [
+    { left: 'E 外向性', right: 'I 内向性', lKey: 'E', rKey: 'I', total: 5 },
+    { left: 'S 感覚', right: 'N 直感', lKey: 'S', rKey: 'N', total: 5 },
+    { left: 'T 思考', right: 'F 感情', lKey: 'T', rKey: 'F', total: 5 },
+    { left: 'J 判断', right: 'P 知覚', lKey: 'J', rKey: 'P', total: 5 },
+  ];
+  const barsEl = document.getElementById('res-bars');
+  barsEl.innerHTML = dims.map(d => {
+    const lScore = scores[d.lKey];
+    const rScore = scores[d.rKey];
+    const pct = Math.round((lScore / (lScore + rScore)) * 100);
+    return `
+      <div class="dim-row">
+        <div class="dim-labels">
+          <span class="left">${d.left} ${lScore}/${d.total}</span>
+          <span class="right">${rScore}/${d.total} ${d.right}</span>
+        </div>
+        <div class="dim-bar-bg"><div class="dim-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join('');
+}
+
+function restartQuiz() {
+  answers = new Array(QUESTIONS.length).fill(null);
+  document.getElementById('page-result').style.display = 'none';
+  document.getElementById('page-start').style.display = 'block';
+}
+</script>
+</body>
+</html>
