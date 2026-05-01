@@ -8,14 +8,14 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f0f1a;
-      --surface: #1a1a2e;
-      --card: #16213e;
+      --bg: #f8fafc;
+      --surface: #f1f5f9;
+      --card: #ffffff;
       --accent: #7c3aed;
-      --accent2: #a78bfa;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --border: #2d2d4e;
+      --accent2: #6d28d9;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
       --radius: 14px;
     }
 
@@ -153,8 +153,14 @@
     .type-display {
       margin-bottom: 28px;
     }
+    .type-emoji {
+      font-size: 5rem;
+      line-height: 1;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 4px 12px rgba(124,58,237,0.2));
+    }
     .type-code {
-      font-size: 4rem;
+      font-size: 3.2rem;
       font-weight: 900;
       letter-spacing: 0.08em;
       background: linear-gradient(135deg, var(--accent2), #60a5fa);
@@ -386,6 +392,7 @@
   <!-- RESULT PAGE -->
   <div id="page-result">
     <div class="type-display">
+      <div class="type-emoji" id="res-emoji"></div>
       <div class="type-code" id="res-code"></div>
       <div class="type-name" id="res-name"></div>
     </div>
@@ -470,6 +477,7 @@ const QUESTIONS = [
 
 const TYPES = {
   INTJ: {
+    emoji: '🦁',
     name: '建築家',
     desc: '想像力豊かで戦略的な思考の持ち主。あらゆる物事に対して計画を持ち、目標達成への意志が強い。独立性が高く、知識の探求を好む。',
     traits: ['戦略的', '独立的', '決断力がある', '知識欲旺盛', '完璧主義'],
@@ -482,6 +490,7 @@ const TYPES = {
     famous: ['イーロン・マスク', 'マーク・ザッカーバーグ', 'ニーチェ'],
   },
   INTP: {
+    emoji: '🦉',
     name: '論理学者',
     desc: '革新的な発明家タイプ。知識への飽くなき渇望を持ち、論理と分析を好む。独創的なアイデアを生み出すが、実行より思考に比重が傾く。',
     traits: ['論理的', '創造的', '分析的', '柔軟な思考', '独立的'],
@@ -494,6 +503,7 @@ const TYPES = {
     famous: ['アルベルト・アインシュタイン', 'ビル・ゲイツ', 'ソクラテス'],
   },
   ENTJ: {
+    emoji: '🦅',
     name: '指揮官',
     desc: '生まれながらのリーダー。カリスマ性と自信にあふれ、意志の力で障害を乗り越える。非効率なものを改善する強い意欲を持つ。',
     traits: ['リーダーシップ', '自信家', '決断力', '戦略的', '目標志向'],
@@ -506,6 +516,7 @@ const TYPES = {
     famous: ['スティーブ・ジョブズ', 'マーガレット・サッチャー', '織田信長'],
   },
   ENTP: {
+    emoji: '🦊',
     name: '討論者',
     desc: 'スマートで好奇心旺盛な思索家。知的な挑戦を楽しみ、どんな権威にも反論できる。多様なアイデアを組み合わせる能力が高い。',
     traits: ['革新的', '議論好き', '機転が利く', '知的好奇心', '大局的'],
@@ -518,6 +529,7 @@ const TYPES = {
     famous: ['レオナルド・ダ・ヴィンチ', 'トーマス・エジソン', '孫正義'],
   },
   INFJ: {
+    emoji: '🦄',
     name: '提唱者',
     desc: '静かで神秘的だが人々を鼓舞する。深い洞察力と強い信念を持ち、人類の幸福のために行動する。稀少で深い共感力の持ち主。',
     traits: ['洞察力', '共感力', '信念が強い', '創造的', '思慮深い'],
@@ -530,6 +542,7 @@ const TYPES = {
     famous: ['ネルソン・マンデラ', '宮崎駿', 'マーティン・ルーサー・キング'],
   },
   INFP: {
+    emoji: '🦌',
     name: '仲介者',
     desc: '詩人的で誠実な心を持ち、常により良い世界を探し求める。共感力が高く、深い価値観を大切にする。内面の豊かな想像の世界を持つ。',
     traits: ['理想主義', '共感力', '創造的', '誠実', '感受性豊か'],
@@ -542,6 +555,7 @@ const TYPES = {
     famous: ['J.R.R.トールキン', '宮沢賢治', 'ヴィンセント・ヴァン・ゴッホ'],
   },
   ENFJ: {
+    emoji: '🐬',
     name: '主人公',
     desc: 'カリスマ的で感化力のあるリーダー。人々の可能性を信じ、その成長を促すことに喜びを感じる。人脈を大切にし、グループをまとめる力がある。',
     traits: ['カリスマ的', '共感力', 'リーダーシップ', '誠実', '協調的'],
@@ -554,6 +568,7 @@ const TYPES = {
     famous: ['バラク・オバマ', 'オプラ・ウィンフリー', '坂本龍馬'],
   },
   ENFP: {
+    emoji: '🦋',
     name: '運動家',
     desc: '情熱的で創造的な自由な魂。人生を可能性の宝庫と見なし、常にポジティブ。人との繋がりを大切にし、新しいアイデアに目を輝かせる。',
     traits: ['情熱的', '創造的', '社交的', '楽観的', '自由奔放'],
@@ -566,6 +581,7 @@ const TYPES = {
     famous: ['ロビン・ウィリアムズ', '村上春樹', 'ウォルト・ディズニー'],
   },
   ISTJ: {
+    emoji: '🐻',
     name: '管理者',
     desc: '実直で事実を重んじる信頼できる人。責任感が強く、伝統や秩序を大切にする。やると決めたことは必ずやり遂げる。',
     traits: ['責任感', '勤勉', '誠実', '実務的', '秩序を重視'],
@@ -578,6 +594,7 @@ const TYPES = {
     famous: ['ウォーレン・バフェット', '徳川家康', 'アンゲラ・メルケル'],
   },
   ISFJ: {
+    emoji: '🐘',
     name: '擁護者',
     desc: '非常に献身的で温かい擁護者。大切な人を守るためなら何でもする心の優しさを持つ。実践的で事実を重んじ、人助けを喜びとする。',
     traits: ['献身的', '温かい', '責任感', '観察力', '実践的'],
@@ -590,6 +607,7 @@ const TYPES = {
     famous: ['ケイト・ミドルトン', 'マザー・テレサ', '伊能忠敬'],
   },
   ESTJ: {
+    emoji: '🦬',
     name: '幹部',
     desc: '伝統と秩序の管理者。物事を整理し、人々をまとめる優れた能力を持つ。正直で忠実で、コミュニティのリーダー的存在になることが多い。',
     traits: ['組織力', 'リーダーシップ', '誠実', '実務的', '決断力'],
@@ -602,6 +620,7 @@ const TYPES = {
     famous: ['ジョン・D・ロックフェラー', '山本五十六', 'ヒラリー・クリントン'],
   },
   ESFJ: {
+    emoji: '🦜',
     name: '領事',
     desc: '非常に思いやりがあり社交的。常に人の役に立ちたいと考え、周囲の調和を大切にする。責任感が強く、グループの潤滑剤的存在。',
     traits: ['思いやり', '社交的', '責任感', '協調性', '実践的'],
@@ -614,6 +633,7 @@ const TYPES = {
     famous: ['ヒュー・ジャックマン', 'テイラー・スウィフト', '昭和天皇'],
   },
   ISTP: {
+    emoji: '🐺',
     name: '巨匠',
     desc: '大胆かつ実践的な実験者。あらゆるツールを使いこなし、問題を解決することに喜びを感じる。冷静で合理的、状況への適応力が高い。',
     traits: ['実践的', '分析的', '合理的', '冷静', '独立的'],
@@ -626,6 +646,7 @@ const TYPES = {
     famous: ['クリント・イーストウッド', 'ブルース・リー', 'マイケル・ジョーダン'],
   },
   ISFP: {
+    emoji: '🐼',
     name: '冒険家',
     desc: '柔軟性があり魅力的な芸術家。自分だけの道を探索し、現在の瞬間を大切にする。人々の驚きと興奮を喜びとし、自己表現を大切にする。',
     traits: ['芸術的', '感受性豊か', '温かい', '柔軟', '自由奔放'],
@@ -638,6 +659,7 @@ const TYPES = {
     famous: ['フレディ・マーキュリー', '美空ひばり', 'マイケル・ジャクソン'],
   },
   ESTP: {
+    emoji: '🐯',
     name: '起業家',
     desc: 'スマートで活発、鋭い知覚の持ち主。リスクを恐れず行動で示す。周囲の人々に強い影響を与え、生き生きとした存在感を放つ。',
     traits: ['行動力', '社交的', '観察力', 'リスクを取る', '実践的'],
@@ -650,6 +672,7 @@ const TYPES = {
     famous: ['マドンナ', 'アーネスト・ヘミングウェイ', '長嶋茂雄'],
   },
   ESFP: {
+    emoji: '🦩',
     name: 'エンターテイナー',
     desc: '自発的でエネルギッシュで熱狂的。人生は楽しむためにあると信じ、周囲の人々を喜ばせることを好む。好奇心旺盛でどんな場所でも場を盛り上げる。',
     traits: ['明るい', '自発的', '社交的', '楽観的', '人を楽しませる'],
@@ -740,6 +763,7 @@ function showResult() {
   const { type, scores } = calcType();
   const info = TYPES[type];
 
+  document.getElementById('res-emoji').textContent = info.emoji;
   document.getElementById('res-code').textContent = type;
   document.getElementById('res-name').textContent = info.name;
   document.getElementById('res-desc').textContent = info.desc;
